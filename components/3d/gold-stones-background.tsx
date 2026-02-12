@@ -88,6 +88,8 @@ export function GoldStonesBackground() {
         <div className="absolute inset-0" onError={() => setHasError(true)}>
           <Canvas {...canvasProps}>
             <GoldStonesScene isMobile={isMobile} blurIntensity={blurIntensity} />
+            {/* Add fog to create depth effect based on scroll */}
+            <fog attach="fog" args={['#0A0A0F', 5, 10 + blurIntensity * 25]} />
           </Canvas>
         </div>
       </Suspense>

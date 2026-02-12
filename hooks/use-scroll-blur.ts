@@ -17,7 +17,7 @@ export function useScrollBlur() {
       // Map scroll progress to blur intensity (0 to 1)
       // Using a smooth easing function for more natural feel
       const easedProgress = Math.pow(scrollProgress, 1.5); // Slightly less aggressive than quadratic
-      targetIntensity.current = Math.min(easedProgress * 0.3, 0.2); // Much less blur - cap at 0.2
+      targetIntensity.current = Math.min(easedProgress * 0.8, 0.6); // More pronounced blur - cap at 0.6
     };
 
     const smoothUpdate = () => {

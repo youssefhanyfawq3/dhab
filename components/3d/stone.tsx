@@ -245,14 +245,14 @@ export function Stone({
         ref={materialRef}
         color={type === 'rock' ? 0xFFD700 : 0xFFD700} /* Both stones should have gold color */
         metalness={type === 'rock' ? 0.95 : 0.98} /* More metallic for both */
-        roughness={type === 'rock' ? 0.25 : 0.15} /* Slightly smoother for more shine */
+        roughness={type === 'rock' ? 0.25 + blurIntensity * 0.3 : 0.15 + blurIntensity * 0.2} /* Increase roughness with blur */
         emissive={type === 'crystal' ? 0xFFD700 : 0x000000}
-        emissiveIntensity={type === 'crystal' ? 0.3 : 0.05} /* More glow for both */
-        envMapIntensity={2.5} /* Strong reflections */
-        clearcoat={0.7} /* More clearcoat for shine */
-        clearcoatRoughness={0.05} /* Very smooth clearcoat */
-        transmission={0.1} /* Minimal transparency */
-        opacity={0.95} /* Nearly opaque */
+        emissiveIntensity={type === 'crystal' ? 0.3 - blurIntensity * 0.1 : 0.05 - blurIntensity * 0.05} /* Reduce glow with blur */
+        envMapIntensity={2.5 * (1 - blurIntensity * 0.4)} /* Reduce reflections with blur */
+        clearcoat={0.7 * (1 - blurIntensity * 0.3)} /* Reduce clearcoat with blur */
+        clearcoatRoughness={0.05 + blurIntensity * 0.15} /* Increase clearcoat roughness with blur */
+        transmission={0.1 + blurIntensity * 0.2} /* Increase transparency with blur */
+        opacity={0.95 - blurIntensity * 0.15} /* Reduce opacity with blur */
         transparent={true}
         // Add more noise/displacement effect
         side={THREE.DoubleSide}

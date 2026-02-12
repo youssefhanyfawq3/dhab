@@ -39,7 +39,7 @@ export function PredictionsSection({ predictions }: PredictionsSectionProps) {
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay: 0.3 }}
-      className="rounded-xl border border-[#27272A] bg-[#141419] p-6"
+      className="rounded-xl border border-[#27272A] bg-[#0A0A0F]/30 backdrop-blur-md p-6"
     >
       {/* Header */}
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">

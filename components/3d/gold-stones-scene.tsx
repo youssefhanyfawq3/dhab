@@ -24,11 +24,20 @@ export function GoldStonesScene({ isMobile = false, blurIntensity = 0 }: GoldSto
     normalizedY: mousePosition.normalizedY,
   }), [mousePosition.normalizedX, mousePosition.normalizedY]);
 
-  // Camera zoom based on scroll
+  // Camera zoom and depth effect based on scroll
   useFrame(() => {
     if (!isMobile) {
-      const targetZ = 10 - scrollProgress.progress * 2;
+      // Adjust camera position based on scroll and blur intensity
+      const targetZ = 10 - scrollProgress.progress * 2 + blurIntensity * 3;
       camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetZ, 0.02);
+      
+      // Also adjust field of view for depth effect
+      camera.fov = THREE.MathUtils.lerp(camera.fov, 50 + blurIntensity * 15, 0.01);
+      camera.updateProjectionMatrix();
+    } else {
+      // For mobile, adjust differently
+      camera.fov = THREE.MathUtils.lerp(camera.fov, 60 + blurIntensity * 10, 0.01);
+      camera.updateProjectionMatrix();
     }
   });
 
@@ -141,10 +150,10 @@ function Particles({ count, blurIntensity = 0 }: { count: number, blurIntensity?
         />
       </bufferGeometry>
       <pointsMaterial
-        size={0.2 * (1 + blurIntensity * 0.2)} // Slightly increase size as blur increases
+        size={0.2 * (1 + blurIntensity * 0.5)} // Increase size more as blur increases
         color="#FFD700"
         transparent
-        opacity={0.8} // Keep particles more visible
+        opacity={0.8 - blurIntensity * 0.3} // Reduce opacity as blur increases
         sizeAttenuation
         blending={THREE.AdditiveBlending}
       />
