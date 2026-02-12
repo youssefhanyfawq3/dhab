@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getHistoricalData } from '@/lib/db';
-import { KaratType, TIME_RANGES } from '@/types';
+import { KaratType } from '@/types';
 
 export async function GET(request: NextRequest) {
   try {

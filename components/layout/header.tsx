@@ -1,14 +1,17 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { TrendingUp, Clock, Sparkles } from 'lucide-react';
+import { TrendingUp, Sparkles } from 'lucide-react';
+import { useLoadComplete } from '@/contexts/load-complete-context';
 
 export function Header() {
+  const { isLoadComplete } = useLoadComplete();
+
   return (
     <motion.header
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
+      initial={{ opacity: 0, y: -30 }}
+      animate={isLoadComplete ? { opacity: 1, y: 0 } : { opacity: 0, y: -30 }}
+      transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
       className="sticky top-0 z-50 border-b border-[#27272A] bg-[#0A0A0F]/60 backdrop-blur-lg"
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
@@ -30,9 +33,9 @@ export function Header() {
         {/* Status indicators */}
         <div className="flex items-center gap-4">
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={isLoadComplete ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
+            transition={{ delay: 0.3, duration: 0.4 }}
             className="flex items-center gap-2 rounded-full bg-[#141419] px-3 py-1.5 border border-[#27272A]"
           >
             <div className="h-2 w-2 animate-pulse rounded-full bg-green-500" />
@@ -40,9 +43,9 @@ export function Header() {
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={isLoadComplete ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
+            transition={{ delay: 0.5, duration: 0.4 }}
             className="hidden sm:flex items-center gap-2 rounded-full bg-[#141419] px-3 py-1.5 border border-[#27272A]"
           >
             <Sparkles className="h-3 w-3 text-[#FFD700]" />

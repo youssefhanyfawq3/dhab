@@ -1,8 +1,7 @@
 'use client';
 
-import { useRef, useMemo } from 'react';
+import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Environment } from '@react-three/drei';
 import * as THREE from 'three';
 
 interface LightsProps {
@@ -12,9 +11,12 @@ interface LightsProps {
 export function Lights({ mousePosition }: LightsProps) {
   const mainLightRef = useRef<THREE.DirectionalLight>(null);
   const rimLightRef = useRef<THREE.PointLight>(null);
+  const backlightRef = useRef<THREE.PointLight>(null);
 
-  // Dynamic light movement based on mouse
-  useFrame(() => {
+  // Dynamic light movement + subtle color temperature shift
+  useFrame((state) => {
+    const time = state.clock.elapsedTime;
+
     if (mainLightRef.current) {
       mainLightRef.current.position.x = THREE.MathUtils.lerp(
         mainLightRef.current.position.x,
@@ -26,6 +28,10 @@ export function Lights({ mousePosition }: LightsProps) {
         10 + mousePosition.normalizedY * 2,
         0.02
       );
+
+      // Subtle animated color temperature shift (gold → warm gold → gold)
+      const hue = 0.12 + Math.sin(time * 0.15) * 0.02; // oscillate around gold hue
+      mainLightRef.current.color.setHSL(hue, 0.9, 0.55);
     }
 
     if (rimLightRef.current) {
@@ -35,14 +41,19 @@ export function Lights({ mousePosition }: LightsProps) {
         0.02
       );
     }
+
+    // Gentle backlight breathing
+    if (backlightRef.current) {
+      backlightRef.current.intensity = 1.5 + Math.sin(time * 0.4) * 0.3;
+    }
   });
 
   return (
     <>
-      {/* Ambient light for base illumination - increased intensity for better base lighting */}
+      {/* Ambient light for base illumination */}
       <ambientLight intensity={0.5} color="#FFD700" />
 
-      {/* Main directional light (sun-like) - adjusted for better gold illumination */}
+      {/* Main directional light (sun-like) with animated color */}
       <directionalLight
         ref={mainLightRef}
         position={[5, 10, 7]}
@@ -78,7 +89,7 @@ export function Lights({ mousePosition }: LightsProps) {
         decay={2}
       />
 
-      {/* Cool accent light - reduced intensity to balance the warm gold tones */}
+      {/* Cool accent light for contrast */}
       <pointLight
         position={[0, 5, -8]}
         intensity={0.3}
@@ -87,8 +98,15 @@ export function Lights({ mousePosition }: LightsProps) {
         decay={2}
       />
 
-      {/* Environment map for realistic reflections - added fallback and improved settings */}
-      <Environment preset="city" blur={0.3} />
+      {/* Warm backlight — soft orange glow behind the scene */}
+      <pointLight
+        ref={backlightRef}
+        position={[0, -2, -10]}
+        intensity={1.5}
+        color="#FF8C00"
+        distance={30}
+        decay={2}
+      />
     </>
   );
 }

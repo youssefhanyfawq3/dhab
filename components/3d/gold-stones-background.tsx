@@ -2,7 +2,6 @@
 
 import { Suspense, useMemo, useState, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { EffectComposer } from '@react-three/postprocessing';
 import { GoldStonesScene } from './gold-stones-scene';
 import { useScrollBlur } from '@/hooks/use-scroll-blur';
 
@@ -10,7 +9,7 @@ export function GoldStonesBackground() {
   const [isMobile, setIsMobile] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [hasError, setHasError] = useState(false);
-  
+
   const { blurIntensity } = useScrollBlur();
 
   useEffect(() => {
@@ -39,8 +38,6 @@ export function GoldStonesBackground() {
       physicallyCorrectLights: true,
       // Improve rendering quality
       outputColorSpace: 'srgb',
-      toneMapping: 'LinearToneMapping', // Using Linear instead of Cineon which caused warnings
-      toneMappingExposure: 1.0,
     },
     style: {
       background: 'transparent',
@@ -89,7 +86,7 @@ export function GoldStonesBackground() {
           <Canvas {...canvasProps}>
             <GoldStonesScene isMobile={isMobile} blurIntensity={blurIntensity} />
             {/* Add fog to create depth effect based on scroll */}
-            <fog attach="fog" args={['#0A0A0F', 5, 10 + blurIntensity * 25]} />
+            <fog attach="fog" args={['#0A0A0F', 8, 18 + blurIntensity * 20]} />
           </Canvas>
         </div>
       </Suspense>

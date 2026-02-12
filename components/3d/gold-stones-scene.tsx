@@ -10,7 +10,7 @@ import * as THREE from 'three';
 
 interface GoldStonesSceneProps {
   isMobile?: boolean;
-  blurIntensity?: number; // New prop for blur effect
+  blurIntensity?: number;
 }
 
 export function GoldStonesScene({ isMobile = false, blurIntensity = 0 }: GoldStonesSceneProps) {
@@ -27,21 +27,22 @@ export function GoldStonesScene({ isMobile = false, blurIntensity = 0 }: GoldSto
   // Camera zoom and depth effect based on scroll
   useFrame(() => {
     if (!isMobile) {
-      // Adjust camera position based on scroll and blur intensity
       const targetZ = 10 - scrollProgress.progress * 2 + blurIntensity * 3;
       camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetZ, 0.02);
-      
-      // Also adjust field of view for depth effect
-      camera.fov = THREE.MathUtils.lerp(camera.fov, 50 + blurIntensity * 15, 0.01);
-      camera.updateProjectionMatrix();
+
+      if (camera instanceof THREE.PerspectiveCamera) {
+        camera.fov = THREE.MathUtils.lerp(camera.fov, 50 + blurIntensity * 15, 0.01);
+        camera.updateProjectionMatrix();
+      }
     } else {
-      // For mobile, adjust differently
-      camera.fov = THREE.MathUtils.lerp(camera.fov, 60 + blurIntensity * 10, 0.01);
-      camera.updateProjectionMatrix();
+      if (camera instanceof THREE.PerspectiveCamera) {
+        camera.fov = THREE.MathUtils.lerp(camera.fov, 60 + blurIntensity * 10, 0.01);
+        camera.updateProjectionMatrix();
+      }
     }
   });
 
-  // Stone configurations
+  // Stone configurations — 3 stones for visual depth
   const stone1Config = useMemo(() => ({
     position: [-4.5, 0.5, -2] as [number, number, number],
     scale: isMobile ? 1.5 : 2.2,
@@ -54,16 +55,23 @@ export function GoldStonesScene({ isMobile = false, blurIntensity = 0 }: GoldSto
     mouseStrength: 0.4,
   }), [isMobile]);
 
+  // New third stone — medium, center-back
+  const stone3Config = useMemo(() => ({
+    position: [0.5, -1.5, -4] as [number, number, number],
+    scale: isMobile ? 1.0 : 1.6,
+    mouseStrength: 0.15,
+  }), [isMobile]);
+
   return (
     <>
       {/* Lighting setup */}
       <Lights mousePosition={memoizedMousePosition} />
 
-      {/* Fallback lighting in case environment map doesn't load */}
-      <hemisphereLight 
-        color="#FFD700" 
-        groundColor="#1a1a2e" 
-        intensity={0.2} 
+      {/* Fallback lighting */}
+      <hemisphereLight
+        color="#FFD700"
+        groundColor="#1a1a2e"
+        intensity={0.2}
       />
 
       {/* Stone 1 - Large Rock (Background) */}
@@ -90,70 +98,80 @@ export function GoldStonesScene({ isMobile = false, blurIntensity = 0 }: GoldSto
         blurIntensity={blurIntensity}
       />
 
-      {/* Floating particles for atmosphere - keep particles prominent regardless of blur */}
-      <Particles count={isMobile ? 20 : 40} blurIntensity={blurIntensity * 0.3} />
+      {/* Stone 3 - Medium Rock (Center-back depth) */}
+      <Stone
+        position={stone3Config.position}
+        scale={stone3Config.scale}
+        type="rock"
+        mousePosition={memoizedMousePosition}
+        scrollProgress={scrollProgress.progress}
+        mouseStrength={stone3Config.mouseStrength}
+        isMobile={isMobile}
+        blurIntensity={blurIntensity}
+      />
+
+      {/* Floating particles for atmosphere */}
+      <Particles count={isMobile ? 30 : 80} blurIntensity={blurIntensity * 0.3} />
     </>
   );
 }
 
-// Floating gold particles
-function Particles({ count, blurIntensity = 0 }: { count: number, blurIntensity?: number }) {
+// Floating gold particles with varied speeds and gentle size pulsing
+function Particles({ count, blurIntensity = 0 }: { count: number; blurIntensity?: number }) {
   const meshRef = useRef<THREE.Points>(null);
 
-  const [positions, sizes] = useMemo(() => {
+  const [positions, speeds] = useMemo(() => {
     const positions = new Float32Array(count * 3);
-    const sizes = new Float32Array(count);
+    const speeds = new Float32Array(count);
 
     for (let i = 0; i < count; i++) {
-      positions[i * 3] = (Math.random() - 0.5) * 20;
-      positions[i * 3 + 1] = (Math.random() - 0.5) * 20;
-      positions[i * 3 + 2] = (Math.random() - 0.5) * 10;
-      sizes[i] = Math.random() * 0.5 + 0.1;
+      positions[i * 3] = (Math.random() - 0.5) * 24;
+      positions[i * 3 + 1] = (Math.random() - 0.5) * 24;
+      positions[i * 3 + 2] = (Math.random() - 0.5) * 14;
+      speeds[i] = 0.3 + Math.random() * 0.7; // varied float speed per particle
     }
 
-    return [positions, sizes];
+    return [positions, speeds];
   }, [count]);
 
   useFrame((state) => {
     if (!meshRef.current) return;
 
-    const positionAttribute = meshRef.current.geometry.attributes.position;
+    const posAttr = meshRef.current.geometry.attributes.position;
+    const time = state.clock.elapsedTime;
 
     for (let i = 0; i < count; i++) {
-      const y = positionAttribute.getY(i);
-      const time = state.clock.elapsedTime;
+      const y = posAttr.getY(i);
+      const speed = speeds[i];
 
-      // Float upward with variation based on blur intensity
-      let newY = y + Math.sin(time * 0.5 + i) * 0.002 * (1 - blurIntensity * 0.5);
+      // Float upward with individual speed + sine wobble
+      let newY = y + speed * 0.003 * (1 - blurIntensity * 0.5);
+      // Horizontal wobble
+      const x = posAttr.getX(i);
+      const wobble = Math.sin(time * 0.3 + i * 1.7) * 0.001;
+      posAttr.setX(i, x + wobble);
 
-      // Reset if too high
-      if (newY > 10) newY = -10;
-
-      positionAttribute.setY(i, newY);
+      if (newY > 12) newY = -12;
+      posAttr.setY(i, newY);
     }
 
-    positionAttribute.needsUpdate = true;
-    // Rotate slower as blur increases
-    meshRef.current.rotation.y = state.clock.elapsedTime * 0.02 * (1 - blurIntensity * 0.3);
+    posAttr.needsUpdate = true;
+    meshRef.current.rotation.y = time * 0.015 * (1 - blurIntensity * 0.3);
   });
+
+  // Gentle size pulsing
+  const particleSize = 0.15 + blurIntensity * 0.1;
 
   return (
     <points ref={meshRef}>
       <bufferGeometry>
-        <bufferAttribute
-          attach="attributes-position"
-          args={[positions, 3]}
-        />
-        <bufferAttribute
-          attach="attributes-size"
-          args={[sizes, 1]}
-        />
+        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
       </bufferGeometry>
       <pointsMaterial
-        size={0.2 * (1 + blurIntensity * 0.5)} // Increase size more as blur increases
+        size={particleSize}
         color="#FFD700"
         transparent
-        opacity={0.8 - blurIntensity * 0.3} // Reduce opacity as blur increases
+        opacity={0.7 - blurIntensity * 0.2}
         sizeAttenuation
         blending={THREE.AdditiveBlending}
       />

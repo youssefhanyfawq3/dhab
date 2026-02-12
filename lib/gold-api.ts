@@ -1,23 +1,49 @@
 import { GoldAPIResponse, CurrentGoldData, GoldPrices, KaratType } from '@/types';
 
 const GOLDAPI_BASE_URL = 'https://www.goldapi.io/api';
-const API_KEY = process.env.GOLDAPI_KEY || 'goldapi-42848smlfwmmj2-io';
+const API_KEY = process.env.GOLDAPI_KEY;
+
+if (!API_KEY) {
+  console.warn('Warning: GOLDAPI_KEY environment variable is not set. Using fallback prices.');
+}
 
 export async function fetchCurrentGoldPrice(): Promise<CurrentGoldData | null> {
   try {
+    // Validate API key exists
+    if (!API_KEY) {
+      console.warn('GOLDAPI_KEY not configured, using fallback prices');
+      return fetchFallbackPrices();
+    }
+
     // Try GoldAPI first
-    if (API_KEY) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+    try {
       const response = await fetch(`${GOLDAPI_BASE_URL}/XAU/EGP`, {
         headers: {
           'x-access-token': API_KEY,
           'Content-Type': 'application/json',
         },
+        signal: controller.signal,
         next: { revalidate: 3600 }, // Cache for 1 hour
       });
 
+      clearTimeout(timeoutId);
+
       if (response.ok) {
         const data: GoldAPIResponse = await response.json();
-        return transformGoldAPIData(data);
+        // Validate response data
+        if (isValidGoldAPIResponse(data)) {
+          return transformGoldAPIData(data);
+        }
+      }
+    } catch (fetchError) {
+      clearTimeout(timeoutId);
+      if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+        console.error('GoldAPI request timed out');
+      } else {
+        console.error('GoldAPI fetch error:', fetchError);
       }
     }
 
@@ -27,6 +53,21 @@ export async function fetchCurrentGoldPrice(): Promise<CurrentGoldData | null> {
     console.error('Error fetching gold prices:', error);
     return fetchFallbackPrices();
   }
+}
+
+// Validate GoldAPI response structure
+function isValidGoldAPIResponse(data: unknown): data is GoldAPIResponse {
+  if (typeof data !== 'object' || data === null) return false;
+  
+  const d = data as Record<string, unknown>;
+  return (
+    typeof d.timestamp === 'number' &&
+    typeof d.price === 'number' &&
+    typeof d.price_gram_24k === 'number' &&
+    typeof d.price_gram_22k === 'number' &&
+    typeof d.price_gram_21k === 'number' &&
+    typeof d.price_gram_18k === 'number'
+  );
 }
 
 function transformGoldAPIData(data: GoldAPIResponse): CurrentGoldData {
@@ -63,16 +104,28 @@ function transformGoldAPIData(data: GoldAPIResponse): CurrentGoldData {
 
 async function fetchFallbackPrices(): Promise<CurrentGoldData> {
   try {
-    // Try to fetch global gold price in USD
-    const response = await fetch('https://api.gold-api.com/price/XAU', {
-      next: { revalidate: 3600 },
-    });
-
     let globalPriceUsd = 2800; // Default fallback
     
-    if (response.ok) {
-      const data = await response.json();
-      globalPriceUsd = data.price || 2800;
+    // Try to fetch global gold price in USD with timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+    try {
+      const response = await fetch('https://api.gold-api.com/price/XAU', {
+        signal: controller.signal,
+        next: { revalidate: 3600 },
+      });
+      clearTimeout(timeoutId);
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data && typeof data.price === 'number' && data.price > 0) {
+          globalPriceUsd = data.price;
+        }
+      }
+    } catch (fetchError) {
+      clearTimeout(timeoutId);
+      console.warn('Fallback gold price fetch failed, using default');
     }
 
     // Fetch USD/EGP exchange rate
@@ -81,6 +134,12 @@ async function fetchFallbackPrices(): Promise<CurrentGoldData> {
     // Calculate EGP prices
     const globalPriceEgp = globalPriceUsd * usdEgpRate;
     const pricePerGram24k = globalPriceEgp / 31.1035; // Convert ounce to gram
+
+    // Validate calculated prices
+    if (!isFinite(pricePerGram24k) || pricePerGram24k <= 0) {
+      console.warn('Invalid calculated prices, using defaults');
+      return getDefaultPrices();
+    }
 
     const prices: GoldPrices = {
       '24k': {
@@ -116,17 +175,26 @@ async function fetchFallbackPrices(): Promise<CurrentGoldData> {
 
 async function fetchUsdEgpRate(): Promise<number> {
   try {
-    // Try to get exchange rate from an API
+    // Try to get exchange rate from an API with timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+
     const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD', {
+      signal: controller.signal,
       next: { revalidate: 3600 },
     });
+    clearTimeout(timeoutId);
 
     if (response.ok) {
       const data = await response.json();
-      return data.rates.EGP || 50.85;
+      if (data?.rates?.EGP && typeof data.rates.EGP === 'number' && data.rates.EGP > 0) {
+        return data.rates.EGP;
+      }
     }
   } catch (error) {
-    console.error('Error fetching exchange rate:', error);
+    if (error instanceof Error && error.name !== 'AbortError') {
+      console.error('Error fetching exchange rate:', error);
+    }
   }
 
   return 50.85; // Default fallback rate

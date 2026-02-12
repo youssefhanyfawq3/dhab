@@ -14,8 +14,8 @@ function generatePredictions(historicalData: { date: string; price: number }[], 
       futureDate.setDate(futureDate.getDate() + i);
 
       // Add small random variation
-      const variation = (Math.random() - 0.48) * 50; // Slightly upward bias
-      const confidence = Math.max(0.5, 0.95 - (i * 0.02)); // Confidence decreases with time
+      const variation = (Math.random() - 0.48) * 50;
+      const confidence = Math.max(0.5, 0.95 - (i * 0.02));
 
       predictions.push({
         date: futureDate.toISOString().split('T')[0],
@@ -61,13 +61,13 @@ function generatePredictions(historicalData: { date: string; price: number }[], 
     // Linear regression prediction
     const lrPrediction = slope * (lastIndex + i) + intercept;
 
-    // Add seasonal adjustment (simple sine wave for market cycles)
+    // Add seasonal adjustment
     const seasonalFactor = Math.sin((lastIndex + i) / 30) * 50;
 
     // Combine predictions with weights
     const predictedPrice = Math.round(lrPrediction + seasonalFactor);
 
-    // Calculate confidence (decreases with time)
+    // Calculate confidence
     const confidence = Math.max(0.5, 0.92 - (i * 0.015));
 
     // Calculate bounds based on historical volatility
@@ -110,7 +110,7 @@ export async function GET(request: NextRequest) {
     }
 
     const karat = karatParam as KaratType;
-    const days = Math.min(parseInt(daysParam, 10), 30); // Max 30 days
+    const days = Math.min(parseInt(daysParam, 10), 30);
 
     if (isNaN(days) || days < 1) {
       return NextResponse.json(
@@ -155,7 +155,7 @@ export async function GET(request: NextRequest) {
       predictions = {
         modelVersion: 'v1.0-linear-regression',
         lastTrained: new Date().toISOString(),
-        accuracy: 88.5, // Placeholder accuracy
+        accuracy: 88.5,
         predictions: days <= 7 ? predictions7 : days <= 14 ? predictions14 : predictions30,
         trend,
         volatility: volatilityLabel,

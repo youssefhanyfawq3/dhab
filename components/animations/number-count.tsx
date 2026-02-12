@@ -52,7 +52,7 @@ export function CountUp({ end, duration = 2, className = '' }: CountUpProps) {
 
     const animate = (timestamp: number) => {
       if (!startTime) startTime = timestamp;
-      const progress = Math.min((timestamp - startTime) / (duration * 1000), 1);
+      const progress = Math.min((timestamp - startTime) / (duration * 3500), 1);
       
       // Easing function (ease-out)
       const easeOut = 1 - Math.pow(1 - progress, 3);
