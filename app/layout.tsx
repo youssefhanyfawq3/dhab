@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { GoldStonesBackgroundClient } from "@/components/3d/gold-stones-background-client";
 
 const inter = Inter({
   variable: "--font-geist-sans",
@@ -33,11 +34,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="dark" suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${jetbrainsMono.variable} antialiased bg-[#0A0A0F] text-white`}
+        className={`${inter.variable} ${jetbrainsMono.variable} antialiased bg-[#0A0A0F] text-white relative`}
       >
-        {children}
+        {/* 3D Gold Stones Background */}
+        <GoldStonesBackgroundClient />
+
+        {/* Main Content */}
+        <div className="relative z-10">
+          {children}
+        </div>
       </body>
     </html>
   );

@@ -125,8 +125,9 @@ export function GoldChart({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
-        className="h-[400px] w-full rounded-xl border border-[#27272A] bg-[#141419] p-4"
+        className="h-[400px] w-full min-h-[400px] rounded-xl border border-[#27272A] bg-[#141419] p-4"
       >
+        {chartData.length > 0 && (
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart
             data={chartData}
@@ -213,6 +214,12 @@ export function GoldChart({
             )}
           </ComposedChart>
         </ResponsiveContainer>
+        )}
+        {chartData.length === 0 && (
+          <div className="flex h-full items-center justify-center text-gray-500">
+            Loading chart data...
+          </div>
+        )}
       </motion.div>
 
       {/* Legend */}

@@ -59,13 +59,19 @@ export async function getHistoricalData(karat: KaratType, days: number = 90): Pr
     }
     
     return (data as string[]).map((item) => {
-      const parsed = JSON.parse(item);
-      return {
-        timestamp: parsed.timestamp,
-        price: parsed.price,
-        date: new Date(parsed.timestamp).toISOString().split('T')[0],
-      };
-    });
+      try {
+        // Handle case where item might already be an object
+        const parsed = typeof item === 'string' ? JSON.parse(item) : item;
+        return {
+          timestamp: parsed.timestamp,
+          price: parsed.price,
+          date: new Date(parsed.timestamp).toISOString().split('T')[0],
+        };
+      } catch (e) {
+        console.error('Failed to parse item:', item, e);
+        return null;
+      }
+    }).filter((item): item is HistoricalDataPoint => item !== null);
   } catch (error) {
     console.error('Error getting historical data:', error);
     return generateMockHistoricalData(days, karat);

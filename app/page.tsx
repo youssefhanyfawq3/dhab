@@ -75,7 +75,7 @@ export default function Home() {
   const karats: KaratType[] = ['24k', '22k', '21k', '18k'];
 
   return (
-    <div className="min-h-screen bg-[#0A0A0F]">
+    <div className="min-h-screen bg-transparent">
       <Header />
 
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -85,7 +85,7 @@ export default function Home() {
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.5 }}
-            className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#FFD700]/30 bg-[#FFD700]/10 px-4 py-2"
+            className="mb-4 inline-flex items-center gap-2 rounded-full bg-[#0A0A0F]/30 backdrop-blur-md border border-[#FFD700]/30 px-4 py-2"
           >
             <Activity className="h-4 w-4 text-[#FFD700]" />
             <span className="text-sm font-medium text-[#FFD700]">Live Market Data</span>
@@ -94,7 +94,7 @@ export default function Home() {
           <h1 className="mb-4 text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
             Egyptian Gold Prices
           </h1>
-          <p className="mx-auto max-w-2xl text-lg text-gray-400">
+          <p className="mx-auto max-w-2xl text-lg text-gray-300">
             Real-time gold prices with AI-powered predictions. Track 24K, 22K, 21K, and 18K gold rates in Egyptian Pounds.
           </p>
 
@@ -102,8 +102,8 @@ export default function Home() {
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="mt-6 flex items-center justify-center gap-2 text-sm text-gray-500"
+              transition={{ delay: 0.6 }}
+              className="mt-6 flex items-center justify-center gap-2 text-sm text-gray-400"
             >
               <Clock className="h-4 w-4" />
               <span>Last updated: {new Date(currentData.timestamp).toLocaleString('en-EG')}</span>
@@ -112,7 +112,7 @@ export default function Home() {
         </FadeIn>
 
         {/* Price Cards */}
-        <StaggerContainer className="mb-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StaggerContainer className="mb-12 grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {karats.map((karat, index) => (
             <StaggerItem key={karat}>
               <motion.div
@@ -137,10 +137,10 @@ export default function Home() {
         </StaggerContainer>
 
         {/* Selected Karat Indicator */}
-        <FadeIn delay={0.4} className="mb-8">
+        <FadeIn delay={0.} className="mb-8">
           <div className="flex items-center justify-center gap-4">
             <span className="text-sm text-gray-400">Selected:</span>
-            <div className="flex items-center gap-2 rounded-full bg-[#141419] border border-[#27272A] px-4 py-2">
+            <div className="flex items-center gap-2 rounded-full bg-[#0A0A0F]/30 backdrop-blur-md border border-white/10 px-4 py-2">
               <div className="h-2 w-2 rounded-full bg-[#FFD700]" />
               <span className="font-medium text-white">{selectedKarat} Gold</span>
             </div>
@@ -148,7 +148,7 @@ export default function Home() {
         </FadeIn>
 
         {/* Chart Section */}
-        <FadeIn delay={0.5} className="mb-12">
+        <FadeIn delay={0.9} className="mb-12">
           <GoldChart
             data={historicalData}
             predictions={predictions?.predictions || []}
@@ -198,13 +198,15 @@ export default function Home() {
         </FadeIn>
 
         {/* Footer */}
-        <FadeIn delay={0.8} className="mt-16 border-t border-[#27272A] pt-8 text-center">
-          <p className="text-sm text-gray-500">
-            DHAB - Egyptian Gold Price Tracker © {new Date().getFullYear()}
-          </p>
-          <p className="mt-2 text-xs text-gray-600">
-            Prices are for informational purposes only. Not financial advice.
-          </p>
+        <FadeIn delay={0.8} className="mt-16 pt-8 text-center">
+          <div className="bg-[#0A0A0F]/30 backdrop-blur-md rounded-xl p-6 border border-white/10">
+            <p className="text-sm text-gray-400">
+              DHAB - Egyptian Gold Price Tracker © {new Date().getFullYear()}
+            </p>
+            <p className="mt-2 text-xs text-gray-500">
+              Prices are for informational purposes only. Not financial advice.
+            </p>
+          </div>
         </FadeIn>
       </main>
     </div>
@@ -228,8 +230,8 @@ function StatCard({
 
   return (
     <motion.div
-      whileHover={{ scale: 1.02, borderColor: 'rgba(255, 215, 0, 0.3)' }}
-      className="rounded-xl border border-[#27272A] bg-[#141419] p-4 transition-colors"
+      whileHover={{ scale: 1.02 }}
+      className="rounded-xl bg-[#0A0A0F]/30 backdrop-blur-md p-4 transition-all hover:bg-[#0A0A0F]/50 border border-white/10"
     >
       <div className="mb-3 flex items-center gap-2 text-gray-400">
         {icon}

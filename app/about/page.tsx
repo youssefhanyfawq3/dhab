@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-[#0A0A0F]">
+    <div className="min-h-screen bg-transparent">
       <Header />
 
       <main className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
@@ -19,10 +19,10 @@ export default function AboutPage() {
         </FadeIn>
 
         <FadeIn delay={0.1}>
-          <div className="prose prose-invert max-w-none">
-            <p className="text-lg text-gray-400">
-              DHAB is a comprehensive gold price tracking platform specifically designed for the Egyptian market. 
-              We provide real-time gold prices and advanced AI-powered predictions to help investors and traders 
+          <div className="prose prose-invert max-w-none bg-[#0A0A0F]/30 backdrop-blur-md p-6 rounded-xl">
+            <p className="text-lg text-gray-300">
+              DHAB is a comprehensive gold price tracking platform specifically designed for the Egyptian market.
+              We provide real-time gold prices and advanced AI-powered predictions to help investors and traders
               make informed decisions.
             </p>
           </div>
@@ -62,9 +62,9 @@ export default function AboutPage() {
         </div>
 
         <FadeIn delay={0.3} className="mt-16">
-          <div className="rounded-xl border border-[#27272A] bg-[#141419] p-8">
+          <div className="rounded-xl bg-[#0A0A0F]/30 backdrop-blur-md p-8 border border-white/10">
             <h2 className="mb-4 text-2xl font-bold text-white">How It Works</h2>
-            <div className="space-y-4 text-gray-400">
+            <div className="space-y-4 text-gray-300">
               <p>
                 <strong className="text-white">Data Collection:</strong> Our system fetches gold prices daily from multiple reliable sources including GoldAPI.io and global market data.
               </p>
@@ -78,13 +78,15 @@ export default function AboutPage() {
           </div>
         </FadeIn>
 
-        <FadeIn delay={0.4} className="mt-16 border-t border-[#27272A] pt-8 text-center">
-          <p className="text-sm text-gray-500">
-            DHAB is an independent project and not affiliated with any gold trading platform.
-          </p>
-          <p className="mt-2 text-xs text-gray-600">
-            Disclaimer: Price predictions are for informational purposes only and should not be considered financial advice.
-          </p>
+        <FadeIn delay={0.4} className="mt-16 pt-8 text-center">
+          <div className="bg-[#0A0A0F]/30 backdrop-blur-md rounded-xl p-6 border border-white/10">
+            <p className="text-sm text-gray-400">
+              DHAB is an independent project and not affiliated with any gold trading platform.
+            </p>
+            <p className="mt-2 text-xs text-gray-500">
+              Disclaimer: Price predictions are for informational purposes only and should not be considered financial advice.
+            </p>
+          </div>
         </FadeIn>
       </main>
     </div>
@@ -101,12 +103,12 @@ function FeatureCard({
   description: string;
 }) {
   return (
-    <div className="rounded-xl border border-[#27272A] bg-[#141419] p-6 transition-colors hover:border-[#FFD700]/30">
-      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-[#FFD700]/10 text-[#FFD700]">
+    <div className="rounded-xl bg-[#0A0A0F]/30 backdrop-blur-md p-6 transition-all hover:bg-[#0A0A0F]/50 border border-white/10">
+      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-[#FFD700]/20 text-[#FFD700]">
         {icon}
       </div>
       <h3 className="mb-2 text-lg font-semibold text-white">{title}</h3>
-      <p className="text-sm text-gray-400">{description}</p>
+      <p className="text-sm text-gray-300">{description}</p>
     </div>
   );
 }

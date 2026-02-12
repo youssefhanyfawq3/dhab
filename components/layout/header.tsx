@@ -9,7 +9,7 @@ export function Header() {
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="sticky top-0 z-50 border-b border-[#27272A] bg-[#0A0A0F]/80 backdrop-blur-xl"
+      className="sticky top-0 z-50 border-b border-[#27272A] bg-[#0A0A0F]/60 backdrop-blur-lg"
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
         {/* Logo */}
