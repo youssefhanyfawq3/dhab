@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Header } from '@/components/layout/header';
 import { PriceCard } from '@/components/ui/price-card';
@@ -128,8 +128,8 @@ export default function Home() {
         )}
       </AnimatePresence>
 
+      <Header />
       <div className="min-h-screen bg-[#0A0A0F]/30 backdrop-blur-md rounded-lg p-4">
-        <Header />
 
         <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
           {/* Cached data warning */}
@@ -302,7 +302,7 @@ function StatCard({
   title: string;
   value: string;
   suffix: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
   trend: string;
 }) {
   const isPositive = trend.startsWith('+');
