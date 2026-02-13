@@ -46,15 +46,15 @@ export function Stone({
       // Simple noise displacement with NaN protection
       for (let i = 0; i < pos.count; i++) {
         vector.fromBufferAttribute(pos, i);
-        
+
         // Check for NaN values before computation
         if (isNaN(vector.x) || isNaN(vector.y) || isNaN(vector.z)) {
           continue; // Skip this vertex if it contains NaN
         }
-        
-        const noise = Math.sin(vector.x * 4) * Math.cos(vector.y * 4  ) * Math.sin(vector.z * 4);
+
+        const noise = Math.sin(vector.x * 3) * Math.cos(vector.y * 3) * Math.sin(vector.z * 3);
         const displacement = 1 + noise * 0.25;
-        
+
         // Ensure displacement is finite
         if (isFinite(displacement)) {
           vector.multiplyScalar(displacement);
@@ -72,15 +72,15 @@ export function Stone({
       // Sharper edges for crystal with NaN protection
       for (let i = 0; i < pos.count; i++) {
         vector.fromBufferAttribute(pos, i);
-        
+
         // Check for NaN values before computation
         if (isNaN(vector.x) || isNaN(vector.y) || isNaN(vector.z)) {
           continue; // Skip this vertex if it contains NaN
         }
-        
-        const noise = Math.sin(vector.x * 5) * Math.cos(vector.y * 5);
+
+        const noise = Math.sin(vector.x * 3) * Math.cos(vector.y * 3) * Math.sin(vector.z * 3);
         const displacement = 1 + noise * 0.08;
-        
+
         // Ensure displacement is finite
         if (isFinite(displacement)) {
           vector.multiplyScalar(displacement);
