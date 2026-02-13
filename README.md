@@ -184,14 +184,6 @@ The current implementation uses linear regression with seasonal adjustments for 
 - Primary: Inter (Google Fonts)
 - Numbers: JetBrains Mono
 
-## Current Gold Prices (Egypt)
-
-As of January 2026:
-- **24K**: ~7,400 EGP/gram
-- **22K**: ~6,800 EGP/gram
-- **21K**: ~6,500 EGP/gram (most popular)
-- **18K**: ~5,550 EGP/gram
-
 ## Data Management
 
 ### Historical Data Backfill
