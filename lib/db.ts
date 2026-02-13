@@ -158,6 +158,39 @@ export async function getHistoricalData(karat: KaratType, days: number = 90): Pr
   }
 }
 
+export async function getLastHistoricalPrice(karat: KaratType): Promise<HistoricalDataPoint | null> {
+  if (!redis) return null;
+
+  try {
+    // Get the very last item from the sorted set
+    const data = await withTimeout(
+      redis.zrange(KEYS.HISTORY(karat), -1, -1),
+      3000,
+      []
+    );
+
+    if (!data || data.length === 0) {
+      return null;
+    }
+
+    const item = data[0];
+    try {
+      const parsed = typeof item === 'string' ? JSON.parse(item) : item;
+      return {
+        timestamp: parsed.timestamp,
+        price: parsed.price,
+        date: new Date(parsed.timestamp).toISOString().split('T')[0],
+      };
+    } catch (e) {
+      console.error('Failed to parse last historical item:', item, e);
+      return null;
+    }
+  } catch (error) {
+    console.error('Error getting last historical price:', error);
+    return null;
+  }
+}
+
 // Validate PredictionData structure
 function isValidPredictionData(data: unknown): data is PredictionData {
   if (typeof data !== 'object' || data === null) return false;

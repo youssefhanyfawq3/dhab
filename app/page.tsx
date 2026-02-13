@@ -128,7 +128,7 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-      <div className="min-h-screen bg-transparent">
+      <div className="min-h-screen bg-[#0A0A0F]/30 backdrop-blur-md rounded-lg p-4">
         <Header />
 
         <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -147,7 +147,7 @@ export default function Home() {
           )}
 
           {/* Hero Section — animates after loading screen */}
-          <FadeIn className="mb-12 text-center" trigger="onLoad" delay={0.1}>
+          <FadeIn className="mb-12 text-center " trigger="onLoad" delay={0.1}>
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={initialLoadComplete ? { scale: 1, opacity: 1 } : { scale: 0.9, opacity: 0 }}
