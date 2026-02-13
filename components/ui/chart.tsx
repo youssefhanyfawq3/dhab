@@ -3,13 +3,11 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import {
-  LineChart,
   Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
   Area,
   ComposedChart,
   ReferenceLine,
@@ -51,6 +49,30 @@ export function GoldChart({
   // Fix hydration issues - only render chart after mount
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const element = containerRef.current;
+    const updateSize = (width: number, height: number) => {
+      setDimensions((prev) => {
+        if (prev.width === width && prev.height === height) return prev;
+        return { width, height };
+      });
+    };
+
+    const rect = element.getBoundingClientRect();
+    updateSize(Math.round(rect.width), Math.round(rect.height));
+
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (!entry) return;
+      updateSize(Math.round(entry.contentRect.width), Math.round(entry.contentRect.height));
+    });
+
+    observer.observe(element);
+    return () => observer.disconnect();
   }, []);
 
   // Combine historical and prediction data properly
@@ -129,6 +151,7 @@ export function GoldChart({
 
   // Only show chart if we have data
   const hasData = chartData.length > 0;
+  const hasSize = dimensions.width > 0 && dimensions.height > 0;
 
   return (
     <div className="w-full">
@@ -164,58 +187,59 @@ export function GoldChart({
 
       {/* Chart */}
       <motion.div
-        ref={containerRef}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
         className="rounded-xl border border-[#27272A] bg-[#141419] p-4"
         style={{ height: '400px' }}
       >
-        {loading ? (
-          // Loading skeleton
-          <div className="flex h-full flex-col items-center justify-center space-y-6">
-            {/* Chart title skeleton */}
-            <div className="w-full flex justify-between px-4">
-              <div className="space-y-2">
-                <div className="h-4 w-32 rounded bg-[#27272A] animate-pulse" />
-                <div className="h-3 w-48 rounded bg-[#27272A] animate-pulse" />
+        <div ref={containerRef} className="h-full w-full">
+          {loading ? (
+            // Loading skeleton
+            <div className="flex h-full flex-col items-center justify-center space-y-6">
+              {/* Chart title skeleton */}
+              <div className="w-full flex justify-between px-4">
+                <div className="space-y-2">
+                  <div className="h-4 w-32 rounded bg-[#27272A] animate-pulse" />
+                  <div className="h-3 w-48 rounded bg-[#27272A] animate-pulse" />
+                </div>
+                <div className="flex gap-2">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="h-8 w-12 rounded bg-[#27272A] animate-pulse" />
+                  ))}
+                </div>
               </div>
-              <div className="flex gap-2">
-                {[...Array(5)].map((_, i) => (
-                  <div key={i} className="h-8 w-12 rounded bg-[#27272A] animate-pulse" />
+
+              {/* Chart area skeleton */}
+              <div className="flex-1 w-full flex items-end justify-between px-4 pb-8 space-x-2">
+                {[...Array(20)].map((_, i) => (
+                  <motion.div
+                    key={i}
+                    className="w-full rounded-t bg-gradient-to-t from-[#27272A] to-[#FFD700]/20"
+                    initial={{ height: 0 }}
+                    animate={{
+                      height: `${20 + Math.random() * 60}%`,
+                    }}
+                    transition={{
+                      duration: 1,
+                      repeat: Infinity,
+                      repeatType: "reverse",
+                      delay: i * 0.05,
+                    }}
+                  />
                 ))}
               </div>
-            </div>
 
-            {/* Chart area skeleton */}
-            <div className="flex-1 w-full flex items-end justify-between px-4 pb-8 space-x-2">
-              {[...Array(20)].map((_, i) => (
-                <motion.div
-                  key={i}
-                  className="w-full rounded-t bg-gradient-to-t from-[#27272A] to-[#FFD700]/20"
-                  initial={{ height: 0 }}
-                  animate={{
-                    height: `${20 + Math.random() * 60}%`,
-                  }}
-                  transition={{
-                    duration: 1,
-                    repeat: Infinity,
-                    repeatType: "reverse",
-                    delay: i * 0.05,
-                  }}
-                />
-              ))}
+              {/* Loading text */}
+              <div className="flex items-center gap-2 text-gray-500">
+                <div className="h-4 w-4 rounded-full border-2 border-[#27272A] border-t-[#FFD700] animate-spin" />
+                <span className="text-sm">Loading chart data...</span>
+              </div>
             </div>
-
-            {/* Loading text */}
-            <div className="flex items-center gap-2 text-gray-500">
-              <div className="h-4 w-4 rounded-full border-2 border-[#27272A] border-t-[#FFD700] animate-spin" />
-              <span className="text-sm">Loading chart data...</span>
-            </div>
-          </div>
-        ) : hasData && mounted ? (
-          <ResponsiveContainer width="100%" height="100%">
+          ) : hasData && mounted && hasSize ? (
             <ComposedChart
+              width={dimensions.width}
+              height={dimensions.height}
               data={chartData}
               onMouseMove={(e: any) => setHoveredData(e?.activePayload || null)}
               onMouseLeave={() => setHoveredData(null)}
@@ -301,12 +325,12 @@ export function GoldChart({
                 />
               )}
             </ComposedChart>
-          </ResponsiveContainer>
-        ) : (
-          <div className="flex h-full items-center justify-center text-gray-500">
-            {chartData.length === 0 ? 'No data available' : 'Loading chart...'}
-          </div>
-        )}
+          ) : (
+            <div className="flex h-full items-center justify-center text-gray-500">
+              {chartData.length === 0 ? 'No data available' : 'Loading chart...'}
+            </div>
+          )}
+        </div>
       </motion.div>
 
       {/* Legend */}

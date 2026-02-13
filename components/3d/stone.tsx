@@ -31,6 +31,8 @@ export function Stone({
   const originalPosition = useMemo(() => new THREE.Vector3(...position), [position]);
   const targetRotation = useRef({ x: 0, y: 0 });
   const isAnimating = useRef(false);
+  const opacity = Math.max(0.85, 0.98 - blurIntensity * 0.15);
+  const isTransparent = opacity < 0.999;
 
   // Apply noise displacement for rock-like appearance
   const geometry = useMemo(() => {
@@ -251,9 +253,8 @@ export function Stone({
         envMapIntensity={2.5 * (1 - blurIntensity * 0.4)} /* Reduce reflections with blur */
         clearcoat={0.7 * (1 - blurIntensity * 0.3)} /* Reduce clearcoat with blur */
         clearcoatRoughness={0.05 + blurIntensity * 0.15} /* Increase clearcoat roughness with blur */
-        transmission={0.1 + blurIntensity * 0.2} /* Increase transparency with blur */
-        opacity={0.95 - blurIntensity * 0.15} /* Reduce opacity with blur */
-        transparent={true}
+        opacity={opacity} /* Reduce opacity with blur */
+        transparent={isTransparent}
         // Add more noise/displacement effect
         side={THREE.DoubleSide}
       />
