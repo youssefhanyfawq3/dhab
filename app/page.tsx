@@ -219,6 +219,7 @@ export default function Home() {
             <GoldChart
               data={historicalData || []}
               predictions={predictions?.predictions || []}
+              currentPrice={currentData?.prices[selectedKarat]?.gram}
               karat={selectedKarat}
               timeRange={timeRange}
               onTimeRangeChange={setTimeRange}

@@ -20,6 +20,7 @@ import { cn } from '@/lib/utils';
 interface GoldChartProps {
   data: HistoricalDataPoint[];
   predictions?: { date: string; price: number }[];
+  currentPrice?: number;
   karat: KaratType;
   timeRange: string;
   onTimeRangeChange: (range: string) => void;
@@ -36,6 +37,7 @@ const karatColors: Record<KaratType, string> = {
 export function GoldChart({
   data,
   predictions = [],
+  currentPrice,
   karat,
   timeRange,
   onTimeRangeChange,
@@ -78,9 +80,24 @@ export function GoldChart({
       });
     });
 
+    // Add current price as "Today" if available
+    if (currentPrice) {
+      const today = new Date().toISOString().split('T')[0];
+      const existing = dataMap.get(today) || { date: today };
+      dataMap.set(today, {
+        ...existing,
+        historical: currentPrice, // Treat current price as the latest historical point
+      });
+    }
+
     // Process predictions
     predictions.forEach((p) => {
       const existing = dataMap.get(p.date) || { date: p.date };
+      // If we have current price for today, we might want to connect prediction from today
+      // But usually predictions start from tomorrow.
+      // If prediction exists for today, it will be overridden by historical (currentPrice) if we want
+      // or we can keep both. Let's keep prediction as prediction.
+
       dataMap.set(p.date, {
         ...existing,
         prediction: p.price,
@@ -91,7 +108,7 @@ export function GoldChart({
     return Array.from(dataMap.values()).sort((a, b) =>
       new Date(a.date).getTime() - new Date(b.date).getTime()
     );
-  }, [data, predictions]);
+  }, [data, predictions, currentPrice]);
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -285,9 +302,9 @@ export function GoldChart({
               )}
 
               {/* Reference line for today */}
-              {predictions.length > 0 && data.length > 0 && (
+              {predictions.length > 0 && (
                 <ReferenceLine
-                  x={data[data.length - 1]?.date}
+                  x={new Date().toISOString().split('T')[0]}
                   stroke="#6B7280"
                   strokeDasharray="3 3"
                   label={{
