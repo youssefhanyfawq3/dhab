@@ -66,47 +66,59 @@ export function GoldChart({
     return () => resizeObserver.disconnect();
   }, []);
 
-  // Combine historical and prediction data
+  // Combine historical and prediction data properly
   const chartData = useMemo(() => {
-    const historical = data.map((d) => ({
-      date: d.date,
-      price: d.price,
-      type: 'historical',
-    }));
+    const dataMap = new Map<string, { date: string; historical?: number; prediction?: number }>();
 
-    const predicted = predictions.map((p) => ({
-      date: p.date,
-      price: p.price,
-      type: 'prediction',
-    }));
+    // Process historical data
+    data.forEach((d) => {
+      dataMap.set(d.date, {
+        date: d.date,
+        historical: d.price,
+      });
+    });
 
-    return [...historical, ...predicted];
+    // Process predictions
+    predictions.forEach((p) => {
+      const existing = dataMap.get(p.date) || { date: p.date };
+      dataMap.set(p.date, {
+        ...existing,
+        prediction: p.price,
+      });
+    });
+
+    // Convert map to array and sort by date
+    return Array.from(dataMap.values()).sort((a, b) =>
+      new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
   }, [data, predictions]);
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
-      const isPrediction = payload[0].payload.type === 'prediction';
       return (
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="rounded-lg border border-[#27272A] bg-[#141419] p-3 shadow-xl"
+          className="rounded-lg border border-[#27272A] bg-[#141419] p-3 shadow-xl space-y-2"
         >
           <p className="mb-2 text-sm text-gray-400">{label}</p>
-          <div className="flex items-center gap-2">
-            <div
-              className={cn(
-                'h-2 w-2 rounded-full',
-                isPrediction ? 'bg-[#00D4FF]' : 'bg-[#FFD700]'
-              )}
-            />
-            <span className="text-lg font-bold text-white">
-              EGP {payload[0].value.toLocaleString()}
-            </span>
-            <span className="text-xs text-gray-500">
-              /g ({isPrediction ? 'Predicted' : 'Actual'})
-            </span>
-          </div>
+
+          {payload.map((entry: any) => (
+            <div key={entry.name} className="flex items-center gap-2">
+              <div
+                className={cn(
+                  'h-2 w-2 rounded-full',
+                  entry.name === 'prediction' ? 'bg-[#00D4FF]' : 'bg-[#FFD700]'
+                )}
+              />
+              <span className="text-lg font-bold text-white">
+                EGP {entry.value.toLocaleString()}
+              </span>
+              <span className="text-xs text-gray-500">
+                /g ({entry.name === 'prediction' ? 'Predicted' : 'Actual'})
+              </span>
+            </div>
+          ))}
         </motion.div>
       );
     }
@@ -172,7 +184,7 @@ export function GoldChart({
                 ))}
               </div>
             </div>
-            
+
             {/* Chart area skeleton */}
             <div className="flex-1 w-full flex items-end justify-between px-4 pb-8 space-x-2">
               {[...Array(20)].map((_, i) => (
@@ -180,7 +192,7 @@ export function GoldChart({
                   key={i}
                   className="w-full rounded-t bg-gradient-to-t from-[#27272A] to-[#FFD700]/20"
                   initial={{ height: 0 }}
-                  animate={{ 
+                  animate={{
                     height: `${20 + Math.random() * 60}%`,
                   }}
                   transition={{
@@ -240,7 +252,7 @@ export function GoldChart({
               {/* Historical data line */}
               <Area
                 type="monotone"
-                dataKey="price"
+                dataKey="historical"
                 stroke={karatColors[karat]}
                 strokeWidth={2}
                 fill={`url(#colorPrice-${karat})`}
@@ -251,14 +263,14 @@ export function GoldChart({
                   stroke: '#0A0A0F',
                   strokeWidth: 2,
                 }}
+                connectNulls // Connect points if there are gaps (optional, but good for single missing days)
               />
 
               {/* Prediction line */}
               {predictions.length > 0 && (
                 <Line
                   type="monotone"
-                  dataKey="price"
-                  data={chartData.filter((d) => d.type === 'prediction')}
+                  dataKey="prediction"
                   stroke="#00D4FF"
                   strokeWidth={2}
                   strokeDasharray="5 5"
@@ -268,6 +280,7 @@ export function GoldChart({
                     stroke: '#0A0A0F',
                     strokeWidth: 2,
                   }}
+                  connectNulls
                 />
               )}
 
