@@ -192,11 +192,20 @@ As of January 2026:
 - **21K**: ~6,500 EGP/gram (most popular)
 - **18K**: ~5,550 EGP/gram
 
-## Data Sources
+## Data Management
 
-- **Primary**: GoldAPI.io (free tier: 100 requests/month)
-- **Fallback**: Global gold price APIs + USD/EGP exchange rate
-- **Calculated**: If APIs fail, prices calculated from global ounce price
+### Historical Data Backfill
+To populate the database with historical data:
+1. Ensure `GOLDAPI_KEY` and `UPSTASH_REDIS_REST_URL` are set.
+2. Trigger the backfill via API:
+   ```bash
+   curl "http://localhost:3000/api/cron/backfill-history?start=2024-01-01&end=2025-01-31"
+   ```
+   Or execute the cron job in Vercel.
+
+### Real-Time Updates
+- Data is fetched strictly from GoldAPI.io.
+- **No Mock Data**: The application relies entirely on real data. If the API quota is exceeded or Redis is empty, the app will show "No Data" states rather than generating fake numbers.
 
 ## Disclaimer
 

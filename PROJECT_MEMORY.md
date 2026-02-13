@@ -657,5 +657,17 @@ CRON_SECRET=...
 
 ---
 
-**Last Updated:** February 12, 2026 - Fixed 3D Background Lighting Issues and Implemented Scroll-Based Blur Effect
-**Status:** LIVE & OPERATIONAL with Full 3D Interactivity
+**Last Updated:** February 13, 2026 - Implemented Historical Data Backfill, Fixed Chart Visualization, and Removed Mock Data
+**Status:** LIVE & OPERATIONAL with Real Data
+
+## Recent Updates (Feb 13, 2026)
+
+### Historical Data & Backfill
+- **Backfill API**: Implemented `/api/cron/backfill-history` to fetch historical data from GoldAPI.io.
+- **Strict Real Data**: Removed `generateMockHistoricalData` and all fallback mock logic. The app now relies entirely on real data stored in Redis.
+- **Data Gap Fix**: Updated the chart to bridge the gap between historical data (yesterday) and predictions (tomorrow) by injecting the live current price as "Today's" data point.
+
+### Chart Visualization
+- **Separated Data Streams**: Refactored `GoldChart` to treat historical and predicted data as separate datasets, preventing visual merging issues.
+- **Reference Line**: Updated "Today" reference line to dynamically point to the current date, aligning with the live data point.
+- **Visuals**: Historical data is shown as a solid yellow area; predictions are shown as a dashed blue line.
