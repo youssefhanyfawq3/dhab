@@ -55,10 +55,54 @@ export async function fetchCurrentGoldPrice(): Promise<CurrentGoldData | null> {
   }
 }
 
+export async function fetchHistoricalGoldPrice(date: string): Promise<CurrentGoldData | null> {
+  try {
+    if (!API_KEY) {
+      console.warn('GOLDAPI_KEY not configured');
+      return null;
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+    try {
+      // date should be in YYYYMMDD format
+      const response = await fetch(`${GOLDAPI_BASE_URL}/XAU/EGP/${date}`, {
+        headers: {
+          'x-access-token': API_KEY,
+          'Content-Type': 'application/json',
+        },
+        signal: controller.signal,
+        next: { revalidate: 86400 }, // Cache for 24 hours (historical data doesn't change)
+      });
+
+      clearTimeout(timeoutId);
+
+      if (response.ok) {
+        const data: GoldAPIResponse = await response.json();
+        if (isValidGoldAPIResponse(data)) {
+          return transformGoldAPIData(data);
+        }
+      } else {
+        console.error(`GoldAPI error for date ${date}: ${response.status} ${response.statusText}`);
+      }
+    } catch (fetchError) {
+      clearTimeout(timeoutId);
+      console.error(`GoldAPI fetch error for date ${date}:`, fetchError);
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Error fetching historical gold prices:', error);
+    return null;
+  }
+}
+
+
 // Validate GoldAPI response structure
 function isValidGoldAPIResponse(data: unknown): data is GoldAPIResponse {
   if (typeof data !== 'object' || data === null) return false;
-  
+
   const d = data as Record<string, unknown>;
   return (
     typeof d.timestamp === 'number' &&
@@ -105,7 +149,7 @@ function transformGoldAPIData(data: GoldAPIResponse): CurrentGoldData {
 async function fetchFallbackPrices(): Promise<CurrentGoldData> {
   try {
     let globalPriceUsd = 2800; // Default fallback
-    
+
     // Try to fetch global gold price in USD with timeout
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000);
@@ -116,7 +160,7 @@ async function fetchFallbackPrices(): Promise<CurrentGoldData> {
         next: { revalidate: 3600 },
       });
       clearTimeout(timeoutId);
-      
+
       if (response.ok) {
         const data = await response.json();
         if (data && typeof data.price === 'number' && data.price > 0) {
@@ -130,7 +174,7 @@ async function fetchFallbackPrices(): Promise<CurrentGoldData> {
 
     // Fetch USD/EGP exchange rate
     const usdEgpRate = await fetchUsdEgpRate();
-    
+
     // Calculate EGP prices
     const globalPriceEgp = globalPriceUsd * usdEgpRate;
     const pricePerGram24k = globalPriceEgp / 31.1035; // Convert ounce to gram
@@ -220,7 +264,7 @@ function getDefaultPrices(): CurrentGoldData {
 export function calculatePriceChange(current: number, previous: number): { change: number; changePercent: number } {
   const change = current - previous;
   const changePercent = (change / previous) * 100;
-  
+
   return {
     change: Math.round(change * 100) / 100,
     changePercent: Math.round(changePercent * 100) / 100,
@@ -234,6 +278,6 @@ export function calculateKaratPrice(price24k: number, karat: KaratType): number 
     '21k': 21,
     '18k': 18,
   };
-  
+
   return Math.round((price24k * karatValues[karat]) / 24);
 }

@@ -4,8 +4,8 @@ import { CurrentGoldData, HistoricalDataPoint, KaratType, PredictionData, ModelM
 const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
 const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
 
-const isRedisConfigured = redisUrl && redisToken && 
-  redisUrl !== 'https://localhost' && 
+const isRedisConfigured = redisUrl && redisToken &&
+  redisUrl !== 'https://localhost' &&
   !redisUrl.includes('localhost');
 
 if (!isRedisConfigured) {
@@ -20,7 +20,7 @@ const redis = isRedisConfigured ? new Redis({
 // Helper function to add timeout to Redis operations
 async function withTimeout<T>(promise: Promise<T>, timeoutMs: number = 3000, fallback: T): Promise<T> {
   if (!promise) return fallback;
-  
+
   try {
     const timeoutPromise = new Promise<never>((_, reject) => {
       setTimeout(() => reject(new Error('Redis operation timeout')), timeoutMs);
@@ -58,7 +58,7 @@ function isValidCurrentGoldData(data: unknown): data is CurrentGoldData {
 // Current Prices
 export async function getCurrentPrices(): Promise<CurrentGoldData | null> {
   if (!redis) return null;
-  
+
   try {
     const data = await withTimeout(redis.get<CurrentGoldData>(KEYS.CURRENT), 3000, null);
     if (data && isValidCurrentGoldData(data)) {
@@ -73,7 +73,7 @@ export async function getCurrentPrices(): Promise<CurrentGoldData | null> {
 
 export async function setCurrentPrices(data: CurrentGoldData): Promise<void> {
   if (!redis) return;
-  
+
   try {
     if (!isValidCurrentGoldData(data)) {
       console.error('Invalid data structure for current prices');
@@ -100,7 +100,7 @@ function isValidHistoricalDataPoint(data: unknown): data is { timestamp: number;
 // Historical Data
 export async function addHistoricalPrice(karat: KaratType, timestamp: number, price: number): Promise<void> {
   if (!redis) return;
-  
+
   try {
     // Validate inputs
     if (!timestamp || timestamp <= 0 || !price || price <= 0) {
@@ -119,26 +119,25 @@ export async function addHistoricalPrice(karat: KaratType, timestamp: number, pr
 
 export async function getHistoricalData(karat: KaratType, days: number = 90): Promise<HistoricalDataPoint[]> {
   if (!redis) {
-    console.log('Redis not configured, returning mock data');
-    return generateMockHistoricalData(days, karat);
+    console.log('Redis not configured, returning empty data');
+    return [];
   }
-  
+
   try {
     const endTime = Date.now();
     const startTime = endTime - days * 24 * 60 * 60 * 1000;
-    
+
     // Use zrange with byScore option for Upstash Redis
     const data = await withTimeout(
       redis.zrange(KEYS.HISTORY(karat), startTime, endTime, { byScore: true }),
       3000,
       []
     );
-    
+
     if (!data || data.length === 0) {
-      // Return mock data if no data exists
-      return generateMockHistoricalData(days, karat);
+      return [];
     }
-    
+
     return (data as string[]).map((item) => {
       try {
         // Handle case where item might already be an object
@@ -155,7 +154,7 @@ export async function getHistoricalData(karat: KaratType, days: number = 90): Pr
     }).filter((item): item is HistoricalDataPoint => item !== null);
   } catch (error) {
     console.error('Error getting historical data:', error);
-    return generateMockHistoricalData(days, karat);
+    return [];
   }
 }
 
@@ -177,7 +176,7 @@ function isValidPredictionData(data: unknown): data is PredictionData {
 // Predictions
 export async function getLatestPredictions(karat: KaratType): Promise<PredictionData | null> {
   if (!redis) return null;
-  
+
   try {
     const data = await withTimeout(
       redis.get<PredictionData>(KEYS.PREDICTIONS_LATEST(karat)),
@@ -196,7 +195,7 @@ export async function getLatestPredictions(karat: KaratType): Promise<Prediction
 
 export async function setLatestPredictions(karat: KaratType, data: PredictionData): Promise<void> {
   if (!redis) return;
-  
+
   try {
     if (!isValidPredictionData(data)) {
       console.error('Invalid prediction data structure');
@@ -215,7 +214,7 @@ export async function setLatestPredictions(karat: KaratType, data: PredictionDat
 // Model Metadata
 export async function getModelMetadata(): Promise<ModelMetadata | null> {
   if (!redis) return null;
-  
+
   try {
     const data = await withTimeout(redis.get<ModelMetadata>(KEYS.MODEL_METADATA), 3000, null);
     return data;
@@ -227,44 +226,12 @@ export async function getModelMetadata(): Promise<ModelMetadata | null> {
 
 export async function setModelMetadata(data: ModelMetadata): Promise<void> {
   if (!redis) return;
-  
+
   try {
     await withTimeout(redis.set(KEYS.MODEL_METADATA, data), 3000, undefined);
   } catch (error) {
     console.error('Error setting model metadata:', error);
   }
-}
-
-// Generate mock historical data for development
-function generateMockHistoricalData(days: number, karat: KaratType): HistoricalDataPoint[] {
-  const data: HistoricalDataPoint[] = [];
-  const basePrices: Record<KaratType, number> = {
-    '24k': 7400,
-    '22k': 6800,
-    '21k': 6500,
-    '18k': 5550,
-  };
-  
-  const basePrice = basePrices[karat];
-  const now = Date.now();
-  
-  for (let i = days; i >= 0; i--) {
-    const timestamp = now - i * 24 * 60 * 60 * 1000;
-    const date = new Date(timestamp).toISOString().split('T')[0];
-    
-    // Add some randomness and trend
-    const trend = Math.sin(i / 10) * 200;
-    const noise = (Math.random() - 0.5) * 100;
-    const price = Math.round(basePrice + trend + noise);
-    
-    data.push({
-      date,
-      timestamp,
-      price,
-    });
-  }
-  
-  return data;
 }
 
 export { redis, isRedisConfigured };
