@@ -52,8 +52,8 @@ export function Stone({
           continue; // Skip this vertex if it contains NaN
         }
         
-        const noise = Math.sin(vector.x * 3) * Math.cos(vector.y * 3) * Math.sin(vector.z * 3);
-        const displacement = 1 + noise * 0.15;
+        const noise = Math.sin(vector.x * 4) * Math.cos(vector.y * 4  ) * Math.sin(vector.z * 4);
+        const displacement = 1 + noise * 0.25;
         
         // Ensure displacement is finite
         if (isFinite(displacement)) {

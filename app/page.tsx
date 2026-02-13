@@ -129,7 +129,7 @@ export default function Home() {
       </AnimatePresence>
 
       <Header />
-      <div className="min-h-screen bg-[#0A0A0F]/30 backdrop-blur-md rounded-lg p-4">
+      <div className="min-h-screen bg-[#0A0A0F]/20 backdrop-blur-lg rounded-lg p-4">
 
         <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
           {/* Cached data warning */}
@@ -147,12 +147,12 @@ export default function Home() {
           )}
 
           {/* Hero Section — animates after loading screen */}
-          <FadeIn className="mb-12 text-center " trigger="onLoad" delay={0.1}>
+          <FadeIn className="mb-12 text-center p-7" trigger="onLoad" delay={0.1}>
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={initialLoadComplete ? { scale: 1, opacity: 1 } : { scale: 0.9, opacity: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="mb-4 inline-flex items-center gap-2 rounded-full bg-[#0A0A0F]/30 backdrop-blur-md border border-[#FFD700]/30 px-4 py-2"
+              className="mb-4 inline-flex items-center gap-2 rounded-lg bg-[#0A0A0F]/30 backdrop-blur-md border border-[#FFD700]/30 px-4 py-2"
             >
               <Activity className="h-4 w-4 text-[#FFD700]" />
               <span className="text-sm font-medium text-[#FFD700]">Live Market Data</span>
