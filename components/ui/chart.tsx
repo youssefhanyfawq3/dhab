@@ -53,21 +53,6 @@ export function GoldChart({
     setMounted(true);
   }, []);
 
-  // Track container dimensions
-  useEffect(() => {
-    if (!containerRef.current) return;
-
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const { width, height } = entry.contentRect;
-        setDimensions({ width, height });
-      }
-    });
-
-    resizeObserver.observe(containerRef.current);
-    return () => resizeObserver.disconnect();
-  }, []);
-
   // Combine historical and prediction data properly
   const chartData = useMemo(() => {
     const dataMap = new Map<string, { date: string; historical?: number; prediction?: number }>();
@@ -142,8 +127,8 @@ export function GoldChart({
     return null;
   };
 
-  // Only show chart if we have valid dimensions
-  const hasValidDimensions = dimensions.width > 0 && dimensions.height > 0;
+  // Only show chart if we have data
+  const hasData = chartData.length > 0;
 
   return (
     <div className="w-full">
@@ -228,7 +213,7 @@ export function GoldChart({
               <span className="text-sm">Loading chart data...</span>
             </div>
           </div>
-        ) : chartData.length > 0 && mounted && hasValidDimensions ? (
+        ) : hasData && mounted ? (
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
               data={chartData}

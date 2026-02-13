@@ -23,7 +23,7 @@ export function LoadingScreen({ loadingStates }: LoadingScreenProps) {
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          background:
+          backgroundImage:
             'radial-gradient(circle at 50% 45%, rgba(255,215,0,0.06) 0%, transparent 60%)',
         }}
       />
